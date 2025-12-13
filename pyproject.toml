@@ -22,7 +22,7 @@ Issues = "https://github.com/c0ffee0wl/llm-tools-sandboxed-python/issues"
 CI = "https://github.com/c0ffee0wl/llm-tools-sandboxed-python/actions"
 
 [project.entry-points.llm]
-tools_sandboxed_python = "llm_tools_sandboxed_python"
+sandboxed_python = "llm_tools_sandboxed_python"
 
 [project.optional-dependencies]
 test = ["pytest"]

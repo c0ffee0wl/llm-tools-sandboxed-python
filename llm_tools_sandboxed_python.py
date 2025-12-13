@@ -81,7 +81,7 @@ print(__sbx_json__.dumps({
 '''
 
 
-def sandboxed_python(code: str) -> str:
+def execute_python(code: str) -> str:
     """
     Execute Python code in a secure bubblewrap sandbox.
 
@@ -299,4 +299,4 @@ def _cleanup_output_dir(output_dir: str) -> None:
 @llm.hookimpl
 def register_tools(register):
     """Register the sandboxed Python execution tool."""
-    register(sandboxed_python)
+    register(execute_python)

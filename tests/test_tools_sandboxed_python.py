@@ -6,18 +6,18 @@ import json
 import os
 import pytest
 from llm.plugins import pm
-from llm_tools_sandboxed_python import sandboxed_python, OUTPUT_BASE_DIR
+from llm_tools_execute_python import execute_python, OUTPUT_BASE_DIR
 
 
 def test_plugin_is_installed():
     """Verify the plugin is properly installed."""
     names = [mod.__name__ for mod in pm.get_plugins()]
-    assert "llm_tools_sandboxed_python" in names
+    assert "llm_tools_execute_python" in names
 
 
 def test_basic_execution():
     """Test basic Python code execution in sandbox."""
-    result = sandboxed_python("print('Hello from sandbox')")
+    result = execute_python("print('Hello from sandbox')")
     data = json.loads(result)
     assert "Hello from sandbox" in data["stdout"]
     assert data["exit_code"] == 0
@@ -31,7 +31,7 @@ y = 10
 result = x + y
 print(f"Result: {result}")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "Result: 15" in data["stdout"]
     assert data["exit_code"] == 0
@@ -46,7 +46,7 @@ import json
 print(f"Python version: {sys.version_info.major}.{sys.version_info.minor}")
 print(f"CWD: {os.getcwd()}")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "Python version:" in data["stdout"]
     assert data["exit_code"] == 0
@@ -62,7 +62,7 @@ try:
 except (PermissionError, OSError) as e:
     print(f"PASS: {type(e).__name__}")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "PASS:" in data["stdout"]
 
@@ -79,7 +79,7 @@ try:
 except (OSError, socket.error) as e:
     print(f"PASS: Network blocked - {type(e).__name__}")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "PASS:" in data["stdout"] or "Network" in data["stderr"]
 
@@ -93,7 +93,7 @@ with open('/tmp/testfile.txt', 'r') as f:
     content = f.read()
 print(f"Content: {content}")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "Content: test content" in data["stdout"]
     assert data["exit_code"] == 0
@@ -120,7 +120,7 @@ print(f"USER exists: {'USER' in env}")
 # Should not have sensitive variables
 print(f"SSH_AUTH_SOCK exists: {'SSH_AUTH_SOCK' in env}")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "PATH exists: True" in data["stdout"]
     assert "HOME exists: True" in data["stdout"]
@@ -133,7 +133,7 @@ def test_syntax_error():
 def broken(
     print("missing closing paren"
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert data["exit_code"] != 0 or "SyntaxError" in data["stderr"]
 
@@ -143,7 +143,7 @@ def test_exception_handling():
     code = '''
 raise ValueError("Test error message")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert data["exit_code"] != 0
     assert "ValueError" in data["stderr"]
@@ -157,7 +157,7 @@ with open('/tmp/output.txt', 'w') as f:
     f.write('Hello, World!')
 print("File created")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "File created" in data["stdout"]
     assert "files" in data
@@ -183,7 +183,7 @@ with open('/tmp/file2.txt', 'w') as f:
     f.write('Content 2')
 print("Files created")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "file1.txt" in data["files"]
     assert "file2.txt" in data["files"]
@@ -208,7 +208,7 @@ with open('/tmp/binary.bin', 'wb') as f:
     f.write(data)
 print("Binary file created")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "binary.bin" in data["files"]
     assert data["files"]["binary.bin"].get("binary") == True
@@ -233,7 +233,7 @@ try:
 except FileNotFoundError:
     print("Hostname file not found")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "Hostname:" in data["stdout"] or "not found" in data["stdout"]
     assert data["exit_code"] == 0
@@ -246,7 +246,7 @@ import subprocess
 result = subprocess.run(['ls', '/tmp'], capture_output=True, text=True)
 print(f"Exit code: {result.returncode}")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "Exit code: 0" in data["stdout"]
 
@@ -256,7 +256,7 @@ def test_empty_output():
     code = '''
 x = 1 + 1
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert data["stdout"] == ""
     assert data["exit_code"] == 0
@@ -267,7 +267,7 @@ x = 1 + 1
 def test_json_output_format():
     """Test that output is always valid JSON with expected fields."""
     code = '''print("test")'''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "stdout" in data
     assert "stderr" in data
@@ -277,7 +277,7 @@ def test_json_output_format():
 def test_no_files_means_no_output_dir():
     """Test that output_dir is not included when no files created."""
     code = '''print("no files here")'''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "output_dir" not in data
     assert "files" not in data
@@ -297,7 +297,7 @@ sys = None
 
 print("Wrapper survived sabotage attempt")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "Wrapper survived sabotage attempt" in data["stdout"]
     assert data["exit_code"] == 0
@@ -316,7 +316,7 @@ print(f"JSON: {result}")
 print(f"CWD: {os.getcwd()}")
 print(f"Python: {sys.version_info.major}")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "JSON: " in data["stdout"]
     assert "CWD: " in data["stdout"]
@@ -335,7 +335,7 @@ print(f"RLIMIT_FSIZE: soft={soft}, hard={hard}")
 assert soft == 10 * 1024 * 1024, f"Expected 10MB, got {soft}"
 print("RLIMIT_FSIZE correctly set to 10MB")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "RLIMIT_FSIZE correctly set to 10MB" in data["stdout"]
     assert data["exit_code"] == 0
@@ -351,7 +351,7 @@ with open(os.path.expanduser('~/homefile.txt'), 'w') as f:
     f.write('written to home')
 print("Wrote to home")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "HOME: /tmp" in data["stdout"]
     assert "Wrote to home" in data["stdout"]
@@ -390,7 +390,7 @@ print(f"Nested: {nested['outer']}")
 template = "Value is {}"
 print(template.format(123))
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert data["exit_code"] == 0
     assert "Dict:" in data["stdout"]
@@ -408,7 +408,7 @@ with open('/tmp/subdir/nested.txt', 'w') as f:
     f.write('nested content')
 print("Created subdirectory with file")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert data["exit_code"] == 0
     # output_dir should be reported even if no top-level files
@@ -432,7 +432,7 @@ import sys
 print("About to exit")
 sys.exit()  # None argument means success
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "About to exit" in data["stdout"]
     assert data["exit_code"] == 0  # None should be treated as 0
@@ -445,7 +445,7 @@ import sys
 print("Exiting with 0")
 sys.exit(0)
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert data["exit_code"] == 0
 
@@ -457,7 +457,7 @@ import sys
 print("Exiting with 1")
 sys.exit(1)
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert data["exit_code"] == 1
 
@@ -468,7 +468,7 @@ def test_sys_exit_string():
 import sys
 sys.exit("Some error message")
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert data["exit_code"] == 1
 
@@ -484,6 +484,6 @@ import time
 while True:
     time.sleep(1)
 '''
-    result = sandboxed_python(code)
+    result = execute_python(code)
     data = json.loads(result)
     assert "timeout" in data["stderr"].lower() or data["exit_code"] == -1
