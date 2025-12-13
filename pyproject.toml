@@ -1,0 +1,28 @@
+[project]
+name = "llm-tools-sandboxed-python"
+version = "0.1"
+description = "LLM plugin for executing Python code in a sandboxed environment"
+readme = "README.md"
+authors = [{name = "c0ffee0wl"}]
+license = "GPL-3.0"
+classifiers = []
+requires-python = ">=3.10"
+dependencies = [
+    "llm"
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+Homepage = "https://github.com/c0ffee0wl/llm-tools-sandboxed-python"
+Changelog = "https://github.com/c0ffee0wl/llm-tools-sandboxed-python/releases"
+Issues = "https://github.com/c0ffee0wl/llm-tools-sandboxed-python/issues"
+CI = "https://github.com/c0ffee0wl/llm-tools-sandboxed-python/actions"
+
+[project.entry-points.llm]
+tools_sandboxed_python = "llm_tools_sandboxed_python"
+
+[project.optional-dependencies]
+test = ["pytest"]
