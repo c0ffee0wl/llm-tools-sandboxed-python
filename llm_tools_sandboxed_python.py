@@ -81,7 +81,7 @@ print(__sbx_json__.dumps({
 '''
 
 
-def execute_python(code: str) -> str:
+def execute_python(code: str, cwd: str) -> str:
     """
     Execute Python code in a secure bubblewrap sandbox.
 
@@ -95,11 +95,39 @@ def execute_python(code: str) -> str:
 
     Args:
         code: Python code to execute (multi-line supported)
+        cwd: Working directory (absolute path, required). Directory is read-only.
+             Use /tmp to write output files.
 
     Returns:
         JSON string with stdout, stderr, exit_code, output_dir, and file metadata.
         Small text files (< 10KB) include content directly.
     """
+    # Validate cwd is absolute path
+    if not cwd.startswith('/'):
+        return json.dumps({
+            "stdout": "",
+            "stderr": f"Error: cwd must be an absolute path, got: {cwd}",
+            "exit_code": -1
+        }, indent=2)
+
+    # Validate cwd exists
+    if not os.path.isdir(cwd):
+        return json.dumps({
+            "stdout": "",
+            "stderr": f"Error: cwd does not exist or is not a directory: {cwd}",
+            "exit_code": -1
+        }, indent=2)
+
+    # Reject paths that are overwritten by sandbox mounts (not the host directories)
+    # Note: "/" is allowed - it's the host root (read-only), useful for calculations
+    forbidden_prefixes = ('/tmp', '/var', '/run')
+    normalized_cwd = cwd.rstrip('/')
+    if normalized_cwd and any(normalized_cwd == p or cwd.startswith(p + '/') for p in forbidden_prefixes):
+        return json.dumps({
+            "stdout": "",
+            "stderr": f"Error: cwd cannot be /tmp, /var, or /run (these are sandbox-internal mounts, not host directories). Use '/' for calculations or a project directory like /home/user/project",
+            "exit_code": -1
+        }, indent=2)
 
     uid = os.getuid()
 
@@ -180,7 +208,7 @@ def execute_python(code: str) -> str:
 
         # Add final arguments
         bwrap_args.extend([
-            '--chdir', '/tmp',
+            '--chdir', cwd,
             '--new-session',
             '--',
             'python3', f'/tmp/{script_name}'
