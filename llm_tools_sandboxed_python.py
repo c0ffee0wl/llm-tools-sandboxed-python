@@ -85,22 +85,30 @@ def execute_python(code: str, cwd: str) -> str:
     """
     Execute Python code in a secure bubblewrap sandbox.
 
-    The sandbox provides:
+    Use for deterministic operations where LLMs are unreliable: math calculations,
+    string manipulation, regex, counting, data processing, and reading local files.
+    Code runs isolated with full read access to the filesystem but cannot modify
+    host files or access the network. Output files written to /tmp persist to host.
+
+    Sandbox security features:
     - Read-only access to entire host filesystem (visible but not modifiable)
     - No network access
     - Isolated PID, IPC, and cgroup namespaces
     - Writable /tmp that persists to host for file output
     - 10MB per-file size limit (kernel-enforced via RLIMIT_FSIZE)
     - Access to installed Python packages (read-only)
+    - 60-second timeout
 
     Args:
-        code: Python code to execute (multi-line supported)
-        cwd: Working directory (absolute path, required). Directory is read-only.
-             Use /tmp to write output files.
+        code: Python code to execute (multi-line supported). Has access to all
+              installed packages in the host Python environment.
+        cwd: Working directory (absolute path, required). Must exist on host.
+             NOT /tmp, /var, or /run (these are sandbox-internal mounts).
+             Use /tmp in code to write output files.
 
     Returns:
-        JSON string with stdout, stderr, exit_code, output_dir, and file metadata.
-        Small text files (< 10KB) include content directly.
+        JSON with stdout, stderr, exit_code, output_dir (if files created),
+        and files dict with path/size/content for small text files.
     """
     # Validate cwd is absolute path
     if not cwd.startswith('/'):
