@@ -176,6 +176,7 @@ def execute_python(code: str, cwd: str) -> str:
             '--proc', '/proc',
 
             # Bind output directory as /tmp (writable, persistent)
+            # Note: size limit enforced via RLIMIT_FSIZE in wrapper, not bwrap
             '--bind', output_dir, '/tmp',
 
             # Other tmpfs for system directories
@@ -187,7 +188,11 @@ def execute_python(code: str, cwd: str) -> str:
             '--unshare-pid',     # Isolate process namespace
             '--unshare-cgroup',  # Isolate cgroup namespace
             '--unshare-ipc',     # Isolate IPC namespace
+            '--unshare-uts',     # Isolate hostname
             '--unshare-net',     # Block network access
+
+            # Set neutral hostname
+            '--hostname', 'sandbox',
 
             # Drop all capabilities for maximum security
             '--cap-drop', 'ALL',
