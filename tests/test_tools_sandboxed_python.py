@@ -6,7 +6,7 @@ import json
 import os
 import pytest
 from llm.plugins import pm
-from llm_tools_execute_python import execute_python, OUTPUT_BASE_DIR
+from llm_tools_execute_python import execute_python
 
 
 def test_plugin_is_installed():
@@ -211,7 +211,7 @@ print("Binary file created")
     result = execute_python(code)
     data = json.loads(result)
     assert "binary.bin" in data["files"]
-    assert data["files"]["binary.bin"].get("binary") == True
+    assert data["files"]["binary.bin"].get("binary") is True
     assert "content" not in data["files"]["binary.bin"]
     # But file should exist on disk
     assert os.path.exists(data["files"]["binary.bin"]["path"])

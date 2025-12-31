@@ -15,6 +15,11 @@ dependencies = [
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[dependency-groups]
+dev = [
+    "ruff>=0.14.10",
+]
+
 [project.urls]
 Homepage = "https://github.com/c0ffee0wl/llm-tools-sandboxed-python"
 Changelog = "https://github.com/c0ffee0wl/llm-tools-sandboxed-python/releases"

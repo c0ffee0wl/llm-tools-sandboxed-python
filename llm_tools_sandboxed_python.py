@@ -133,7 +133,7 @@ def execute_python(code: str, cwd: str) -> str:
     if normalized_cwd and any(normalized_cwd == p or cwd.startswith(p + '/') for p in forbidden_prefixes):
         return json.dumps({
             "stdout": "",
-            "stderr": f"Error: cwd cannot be /tmp, /var, or /run (these are sandbox-internal mounts, not host directories). Use '/' for calculations or a project directory like /home/user/project",
+            "stderr": "Error: cwd cannot be /tmp, /var, or /run (these are sandbox-internal mounts, not host directories). Use '/' for calculations or a project directory like /home/user/project",
             "exit_code": -1
         }, indent=2)
 
